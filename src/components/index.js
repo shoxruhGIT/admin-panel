@@ -1,0 +1,9 @@
+export { default as CategorySection } from "./CategorySection";
+export { default as DiscountSection } from "./DiscountSection";
+export { default as SizesSection } from "./SizesSection";
+export { default as ColorsSection } from "./ColorsSection";
+export { default as FaqSection } from "./FaqSection";
+export { default as ContactSection } from "./ContactSection";
+export { default as TeamSection } from "./TeamSection";
+export { default as NewsSection } from "./NewsSection";
+export { default as ProductsSection } from "./ProductsSection";
