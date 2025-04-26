@@ -32,14 +32,14 @@ const CategorySection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/product/${id}`, {
+      await axios.delete(`https://back.ifly.com.uz/api/category/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
-      
+
     } catch (error) {
       console.error(error);
 
