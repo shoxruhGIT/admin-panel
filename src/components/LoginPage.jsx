@@ -9,6 +9,7 @@ const LoginPage = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigation = useNavigate();
 
@@ -55,6 +56,7 @@ const LoginPage = () => {
       });
 
       navigation("/");
+      setIsLoading(true);
 
       localStorage.setItem("accessToken", data.data.access_token);
     } catch (error) {
@@ -105,7 +107,7 @@ const LoginPage = () => {
             )}
           </div>
           <button className="w-full h-[40px] bg-green-500 text-white rounded-lg cursor-pointer">
-            Login
+            {isLoading ? "Loading..." : "Login"}
           </button>
         </form>
       </div>

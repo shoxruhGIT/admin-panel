@@ -15,7 +15,7 @@ import {
 
 const AdminPanel = () => {
   return (
-    <div className="w-full flex h-screen overflow-hidden">
+    <div className="w-full min-h-screen bg-gray-100">
       <PanelSection />
 
       <Routes>

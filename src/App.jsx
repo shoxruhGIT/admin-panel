@@ -17,7 +17,7 @@ const LoginRedirect = ({ children }) => {
 
 const App = () => {
   return (
-    <div className="w-full h-screen bg-gray-100 flex">
+    <div className="w-full h-screen flex overflow-hidden">
       <ToastContainer />
       <Routes>
         <Route
