@@ -162,7 +162,7 @@ const SizesSection = () => {
 
   return (
     <div className="ml-72 flex-1 p-6">
-      <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+      <div className="mt-6 bg-white rounded-lg shadow-md p-6 max-h-[50em] overflow-y-auto custom-scrollbar">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">Sizes</h2>
           <button
@@ -174,7 +174,7 @@ const SizesSection = () => {
         </div>
         {isOpenModal && (
           <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
-            <div className="w-full max-w-[800px] min-h-[200px] bg-white p-8 rounded-lg">
+            <div className="w-full max-w-[800px] min-h-[200px] bg-white p-8 rounded-lg overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold mb-4">
                   {isEditModal ? "Edit category" : "Add category"}
@@ -219,7 +219,7 @@ const SizesSection = () => {
             </div>
           </div>
         )}
-        <div className="flex flex-col items-center justify-center min-h-28">
+        <div className="flex flex-col items-center justify-center">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">
               <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
