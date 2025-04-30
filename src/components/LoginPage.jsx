@@ -39,26 +39,37 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "https://back.ifly.com.uz/api/auth/login",
-        login
-      );
+      if (!login.login || !login.password === 0) {
+        const newError = {
+          login: "Login should not be empty",
+          password: "Password should be empty",
+        };
 
-      toast.success(`${data.data.message}`);
+        setErrors({ ...newError });
+        setIsLoading(false);
+      } else {
+        const { data } = await axios.post(
+          "https://back.ifly.com.uz/api/auth/login",
+          login
+        );
 
-      console.log(data);
+        toast.success(`${data.data.message}`);
 
-      setLogin({
-        login: "",
-        password: "",
-      });
+        console.log(data);
 
-      navigation("/");
-      setIsLoading(true);
+        setLogin({
+          login: "",
+          password: "",
+        });
 
-      localStorage.setItem("accessToken", data.data.access_token);
+        navigation("/");
+
+        localStorage.setItem("accessToken", data.data.access_token);
+        setIsLoading(true);
+      }
     } catch (error) {
       console.log(error.response);
       toast.error(`${error.message}`);
@@ -106,7 +117,11 @@ const LoginPage = () => {
               <p style={{ color: "red" }}>{errors.password}</p>
             )}
           </div>
-          <button className="w-full h-[40px] bg-green-500 text-white rounded-lg cursor-pointer">
+          <button
+            className={`w-full h-[40px] ${
+              isLoading ? "bg-gray-300" : "bg-green-500"
+            }  text-white rounded-lg cursor-pointer`}
+          >
             {isLoading ? "Loading..." : "Login"}
           </button>
         </form>
