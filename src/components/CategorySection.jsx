@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
+import Loading from "../ui/Loading";
+import DeleteModal from "../ui/DeleteModal";
 
 const CategorySection = () => {
   const [category, setCategory] = useState([]);
@@ -10,6 +12,9 @@ const CategorySection = () => {
   const [isEditModal, setIsEditModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [editItemId, setEditItemId] = useState(null);
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const token = localStorage.getItem("accessToken");
 
   const [categoryDetails, setCategoryDetails] = useState({
@@ -49,8 +54,9 @@ const CategorySection = () => {
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("Category deleted successfully!");
       getCategory();
+      setIsOpenDeleteModal(false);
     } catch (error) {
       console.error(error);
 
@@ -131,7 +137,7 @@ const CategorySection = () => {
             },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        toast.success("Category updated successfully!");
         setIsOpenModal(false);
         getCategory();
       } else {
@@ -142,7 +148,7 @@ const CategorySection = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("Category added successfully!");
 
         setIsOpenModal(false);
         resetForm();
@@ -284,13 +290,16 @@ const CategorySection = () => {
             </div>
           </div>
         )}
+        {isOpenDeleteModal && (
+          <DeleteModal
+            deleteItem={() => deleteCategory(selectedCategory.id)}
+            onCancel={() => setIsOpenDeleteModal(false)}
+            label="category"
+          />
+        )}
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
-            <div className="flex-col gap-4 w-full flex items-center justify-center">
-              <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
-                <div className="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" />
-              </div>
-            </div>
+            <Loading />
           ) : category.length > 0 ? (
             <table className="min-w-full border border-gray-200">
               <thead className="bg-gray-100">
@@ -323,7 +332,10 @@ const CategorySection = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteCategory(item.id)}
+                        onClick={() => {
+                          setIsOpenDeleteModal(true);
+                          setSelectedCategory(item);
+                        }}
                         className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                       >
                         Delete

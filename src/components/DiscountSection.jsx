@@ -2,22 +2,29 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
+import DeleteModal from "../ui/DeleteModal";
+import Loading from "../ui/Loading";
 
 const DiscountSection = () => {
   const [discount, setDiscount] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isEditId, setIsEditId] = useState(null);
+  const [isEditModal, setIsEditModal] = useState(false);
+
+  const [isDeleteOpenModal, setIsDeleteOpenModal] = useState(false);
+  const [selectedDiscount, setSelectedDiscount] = useState(null);
+
+  const token = localStorage.getItem("accessToken");
+
   const [discountDetails, setDiscountDetails] = useState({
     discount: 0,
     started_at: "",
     finished_at: "",
     status: false,
   });
-  const [isOpenModal, setIsOpenModal] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [isEditId, setIsEditId] = useState(null);
-  const [isEditModal, setIsEditModal] = useState(false);
-
-  const token = localStorage.getItem("accessToken");
 
   const getDiscount = async () => {
     try {
@@ -50,6 +57,7 @@ const DiscountSection = () => {
 
       toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
       getDiscount();
+      setIsDeleteOpenModal(false);
     } catch (error) {
       console.error(error);
 
@@ -309,6 +317,12 @@ const DiscountSection = () => {
             </div>
           </div>
         )}
+        {isDeleteOpenModal && (
+          <DeleteModal
+            deleteItem={() => deleteDiscount(selectedDiscount.id)}
+            onCancel={() => setIsDeleteOpenModal(false)}
+          />
+        )}
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">
@@ -356,7 +370,10 @@ const DiscountSection = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteDiscount(item.id)}
+                        onClick={() => {
+                          setIsDeleteOpenModal(true);
+                          setSelectedDiscount(item);
+                        }}
                         className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                       >
                         Delete

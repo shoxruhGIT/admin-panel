@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import axios from "axios";
 import { toast } from "react-toastify";
+import InputField from "../ui/Input";
+import TextareaField from "../ui/Textarea";
+import Loading from "../ui/Loading";
+import DeleteModal from "../ui/DeleteModal";
 
 const ProductsSection = () => {
   const [data, setData] = useState([]);
@@ -11,7 +17,9 @@ const ProductsSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isEditModal, setIsEditModal] = useState(false);
-  const [prodyctId, setProductId] = useState(null);
+  const [binaryFile, setBinaryFile] = useState(null);
+  const [productId, setProductId] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [category, setCategory] = useState({});
   const [sizes, setSizes] = useState({});
@@ -30,14 +38,13 @@ const ProductsSection = () => {
     sizes_id: [],
     colors_id: [],
     images: [],
-    materials: {},
     discount_id: "",
     min_sell: "",
   });
 
   const token = localStorage.getItem("accessToken");
 
-  const getData = async () => {
+  const getProduct = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get("https://back.ifly.com.uz/api/product");
@@ -49,62 +56,24 @@ const ProductsSection = () => {
     }
   };
 
-  const getCategory = async () => {
+  const getData = async () => {
     try {
-      setIsLoading(true);
       const category = await axios.get("https://back.ifly.com.uz/api/category");
+      const sizes = await axios.get("https://back.ifly.com.uz/api/sizes");
+      const colors = await axios.get("https://back.ifly.com.uz/api/colors");
+      const { data } = await axios.get("https://back.ifly.com.uz/api/discount");
+      setDiscount(data.data);
+      setColors(colors.data.data);
+      setSizes(sizes.data.data);
       setCategory(category.data.data);
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getSizes = async () => {
-    try {
-      setIsLoading(true);
-      const { data } = await axios.get("https://back.ifly.com.uz/api/sizes");
-      console.log(data.data);
-      setSizes(data.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getColors = async () => {
-    try {
-      setIsLoading(true);
-      const category = await axios.get("https://back.ifly.com.uz/api/colors");
-      setColors(category.data.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getDiscount = async () => {
-    try {
-      setIsLoading(true);
-      const { data } = await axios.get("https://back.ifly.com.uz/api/discount");
-      console.log(data.data);
-      setDiscount(data.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     getData();
-    getCategory();
-    getSizes();
-    getColors();
-    getDiscount();
+    getProduct();
   }, []);
 
   const deleteItem = async (id) => {
@@ -114,30 +83,11 @@ const ProductsSection = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
-      getData();
+      toast.success("Product deleted successfully!");
+      getProduct();
+      setIsDeleteOpen(false);
     } catch (error) {
       console.error(error);
-
-      if (error.response) {
-        if (error.response.status === 403) {
-          toast.error(
-            "Sizda bu amalni bajarishga ruxsat yo'q (403 Forbidden)."
-          );
-        } else if (error.response.status === 401) {
-          toast.error(
-            "Token noto'g'ri yoki muddati tugagan (401 Unauthorized)."
-          );
-        } else if (error.response.status === 500) {
-          toast.error(
-            "Serverda xatolik yuz berdi (500 Internal Server Error)."
-          );
-        } else {
-          toast.error(`Xatolik: ${error.response.status}`);
-        }
-      } else {
-        toast.error("Tarmoq xatoligi yoki server javob bermadi.");
-      }
     }
   };
 
@@ -147,25 +97,71 @@ const ProductsSection = () => {
     setProductDetails((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const saveProduct = async (e) => {
-    e.preventDefault();
-
-    try {
-      await axios.post(
-        "https://back.ifly.com.uz/api/discount",
-        productDetails,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+  const addSize = (sizeObj) => {
+    setProductDetails((prev) => {
+      const exist = prev.sizes_id.some(
+        (size) =>
+          (typeof size === "object" && size.id === sizeObj.id) ||
+          (typeof size === "string" && size === sizeObj.size)
       );
-      toast.success("added successfully");
-    } catch (error) {
-      console.log(error);
 
-      toast.error("error");
-    }
+      if (exist) {
+        return prev;
+      }
+
+      return { ...prev, sizes_id: [...prev.sizes_id, sizeObj] };
+    });
+  };
+
+  const addColor = (colorObj) => {
+    setProductDetails((prev) => {
+      const exist = prev.colors_id.some(
+        (color) =>
+          (typeof color === "object" && color.id === colorObj.id) ||
+          (typeof color === "string" && color === colorObj.color_en)
+      );
+
+      if (exist) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        colors_id: [...prev.colors_id, colorObj],
+      };
+    });
+  };
+
+  const openEditModal = (item) => {
+    const sizeArray =
+      item.sizes?.map((size) => ({
+        id: size.id,
+        size: size.size,
+      })) || [];
+
+    const colorArray = item.colors?.map((color) => ({
+      id: color.id,
+      color_en: color.color_en,
+    }));
+
+    setIsEditModal(true);
+    setProductId(item.id);
+    setProductDetails({
+      title_en: item?.title_en,
+      title_ru: item?.title_ru,
+      title_de: item?.title_de,
+      description_en: item?.description_en,
+      description_ru: item?.description_ru,
+      description_de: item?.description_de,
+      price: item?.price,
+      category_id: item?.category?.id,
+      sizes_id: sizeArray,
+      colors_id: colorArray,
+      // images: [],
+      discount_id: item?.discount?.id,
+      min_sell: item?.min_sell,
+    });
+    setIsOpenModal(true);
   };
 
   const openAddModal = () => {
@@ -182,11 +178,76 @@ const ProductsSection = () => {
       sizes_id: [],
       colors_id: [],
       images: [],
-      materials: {},
       discount_id: "",
       min_sell: "",
+      file: "",
     });
     setIsOpenModal(true);
+  };
+
+  // -------------------- add and update function ---------------------
+
+  const saveProduct = async (e) => {
+    e.preventDefault();
+
+    try {
+      const formData = new FormData();
+
+      formData.append("title_en", productDetails.title_en);
+      formData.append("title_ru", productDetails.title_ru);
+      formData.append("title_de", productDetails.title_de);
+
+      formData.append("description_en", productDetails.description_en);
+      formData.append("description_ru", productDetails.description_ru);
+      formData.append("description_de", productDetails.description_de);
+
+      formData.append("price", productDetails.price);
+      formData.append("min_sell", productDetails.min_sell);
+      formData.append("category_id", productDetails.category_id);
+      formData.append("discount_id", productDetails.discount_id);
+      // formData.append("materials", JSON.stringify(productDetails.materials));
+      productDetails.sizes_id.forEach((id) => {
+        formData.append("sizes_id[]", id.id);
+      });
+
+      productDetails.colors_id.forEach((id) => {
+        formData.append("colors_id[]", id.id);
+      });
+
+      formData.append("files", binaryFile);
+
+      if (isEditModal) {
+        await axios.patch(
+          `https://back.ifly.com.uz/api/product/${productId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        toast.success("Product updated successfully!");
+        setIsOpenModal(false);
+        getProduct();
+        // resetForm();
+      } else {
+        await axios.post("https://back.ifly.com.uz/api/product", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        toast.success("Product added successfully");
+        setIsOpenModal(false);
+        getProduct();
+        setIsLoading(true);
+      }
+    } catch (error) {
+      console.log(error);
+
+      toast.error("error");
+    }
   };
 
   return (
@@ -211,7 +272,6 @@ const ProductsSection = () => {
                 <button
                   onClick={() => {
                     setIsOpenModal(false);
-                    // resetForm();
                   }}
                   className="text-white bg-red-500 rounded-[50%] h-[35px] w-[35px] flex items-center justify-center cursor-pointer"
                 >
@@ -221,20 +281,12 @@ const ProductsSection = () => {
               <form className="flex flex-col gap-4">
                 {/* ---------------------------------- title in english ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="title_en"
-                  >
-                    Product title (EN)
-                  </label>
-                  <input
+                  <InputField
+                    label="Product title (EN)"
                     name="title_en"
                     value={productDetails.title_en}
                     onChange={handleProductDetial}
-                    className="w-full border rounded-md h-[40px] p-4 border-gray-300"
-                    type="text"
-                    id="title_en"
-                    placeholder="Enter title in english"
+                    placeholder="Enter title in English"
                     required
                   />
                   {/* {errors.name_en && (
@@ -244,13 +296,8 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- title in russian ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="title_ru"
-                  >
-                    Product title (RU)
-                  </label>
-                  <input
+                  <InputField
+                    label="Product title (RU)"
                     name="title_ru"
                     value={productDetails.title_ru}
                     onChange={handleProductDetial}
@@ -267,13 +314,8 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- title in german ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="title_de"
-                  >
-                    Product title (DE)
-                  </label>
-                  <input
+                  <InputField
+                    label="Product title (DE)"
                     name="title_de"
                     value={productDetails.title_de}
                     onChange={handleProductDetial}
@@ -290,20 +332,15 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- description in english ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="description_en"
-                  >
-                    Product description (EN)
-                  </label>
-                  <textarea
+                  <TextareaField
+                    label="Product description (EN)"
                     className="w-full p-2 border border-gray-300 rounded"
                     value={productDetails.description_en}
                     onChange={handleProductDetial}
                     name="description_en"
                     id="description_en"
                     placeholder="Enter description in English"
-                  ></textarea>
+                  />
                   {/* {errors.answer_de && (
                     <p style={{ color: "red" }}>{errors.answer_de}</p>
                   )} */}
@@ -311,20 +348,15 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- description in russian ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="description_ru"
-                  >
-                    Product description (RU)
-                  </label>
-                  <textarea
+                  <TextareaField
+                    label="Product description (RU)"
                     className="w-full p-2 border border-gray-300 rounded"
                     value={productDetails.description_ru}
                     onChange={handleProductDetial}
                     name="description_ru"
                     id="description_ru"
                     placeholder="Enter description in Russian"
-                  ></textarea>
+                  ></TextareaField>
                   {/* {errors.answer_de && (
                     <p style={{ color: "red" }}>{errors.answer_de}</p>
                   )} */}
@@ -332,20 +364,15 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- description in russian ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="description_de"
-                  >
-                    Product description (DE)
-                  </label>
-                  <textarea
+                  <TextareaField
+                    label="Product description (DE)"
                     className="w-full p-2 border border-gray-300 rounded"
                     value={productDetails.description_de}
                     onChange={handleProductDetial}
                     name="description_de"
                     id="description_de"
                     placeholder="Enter description in German"
-                  ></textarea>
+                  ></TextareaField>
                   {/* {errors.answer_de && (
                     <p style={{ color: "red" }}>{errors.answer_de}</p>
                   )} */}
@@ -353,13 +380,8 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- price section ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="price"
-                  >
-                    Price
-                  </label>
-                  <input
+                  <InputField
+                    label="Price"
                     name="price"
                     value={productDetails.price}
                     onChange={handleProductDetial}
@@ -376,13 +398,8 @@ const ProductsSection = () => {
 
                 {/* ---------------------------------- min-sell section ---------------------------- */}
                 <div className="">
-                  <label
-                    className="block mb-1 text-sm font-medium"
-                    htmlFor="min_sell"
-                  >
-                    Minimum sel
-                  </label>
-                  <input
+                  <InputField
+                    label="Minimum sel"
                     name="min_sell"
                     value={productDetails.min_sell}
                     onChange={handleProductDetial}
@@ -407,11 +424,25 @@ const ProductsSection = () => {
                   </label>
                   <select
                     className="w-full p-2 border border-gray-300 rounded mb-2"
-                    name="category_id"
-                    id="category_id"
+                    value={productDetails.category_id}
+                    onChange={(e) => {
+                      const selecteId = Number.parseInt(e.target.value);
+                      const selectedCategory = category.find(
+                        (cat) => cat.id === selecteId
+                      );
+
+                      if (selectedCategory) {
+                        setProductDetails((prev) => ({
+                          ...prev,
+                          category: selectedCategory,
+                          category_id: selectedCategory.id,
+                        }));
+                      }
+                    }}
                   >
-                    {category.map((item) => (
-                      <option key={item.id} value={item.id} onChange={handleProductDetial}>
+                    <option value="">Select category</option>
+                    {category?.map((item) => (
+                      <option key={item.id} value={item.id}>
                         {item.name_en}
                       </option>
                     ))}
@@ -432,8 +463,34 @@ const ProductsSection = () => {
                   <div className="flex flex-wrap items-center gap-4">
                     {sizes.map((item) => (
                       <div key={item.id} className="flex items-center gap-2">
-                        <input type="checkbox" id="size" value={item.id} />
-                        <label htmlFor="size" className="text-sm">
+                        <input
+                          type="checkbox"
+                          id={`size-${item.id}`}
+                          value={item.id}
+                          checked={productDetails.sizes_id.some(
+                            (size) =>
+                              (typeof size === "object" &&
+                                size.id === item.id) ||
+                              (typeof size === "string" && size === item.size)
+                          )}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              addSize(item);
+                            } else {
+                              setProductDetails((prev) => ({
+                                ...prev,
+                                sizes_id: prev.sizes_id.filter(
+                                  (size) =>
+                                    (typeof size === "object" &&
+                                      size.id !== item.id) ||
+                                    (typeof size === "string" &&
+                                      size !== item.size)
+                                ),
+                              }));
+                            }
+                          }}
+                        />
+                        <label htmlFor={`size-${item.id}`} className="text-sm">
                           {item.size}
                         </label>
                       </div>
@@ -455,8 +512,35 @@ const ProductsSection = () => {
                   <div className="flex flex-wrap items-center gap-4">
                     {colors.map((item) => (
                       <div key={item.id} className="flex items-center gap-2">
-                        <input type="checkbox" id="size" value={item.id} />
-                        <label htmlFor="size" className="text-sm">
+                        <input
+                          type="checkbox"
+                          id={`color-${item.id}`}
+                          value={item.id}
+                          checked={productDetails.colors_id.some(
+                            (color) =>
+                              (typeof color === "object" &&
+                                color.id === item.id) ||
+                              (typeof color === "string" &&
+                                color === item.color_en)
+                          )}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              addColor(item);
+                            } else {
+                              setProductDetails((prev) => ({
+                                ...prev,
+                                colors_id: prev.colors_id.filter(
+                                  (color) =>
+                                    (typeof color === "object" &&
+                                      color.id !== item.id) ||
+                                    (typeof color === "string" &&
+                                      color !== item.color_en)
+                                ),
+                              }));
+                            }
+                          }}
+                        />
+                        <label htmlFor={`color-${item.id}`} className="text-sm">
                           {item.color_en}
                         </label>
                       </div>
@@ -477,9 +561,23 @@ const ProductsSection = () => {
                   </label>
                   <select
                     className="w-full p-2 border border-gray-300 rounded mb-2"
-                    name="discount_id"
-                    id="discount_id"
+                    value={productDetails.discount_id}
+                    onChange={(e) => {
+                      const selecteId = Number.parseInt(e.target.value);
+                      const selectedDiscount = discount.find(
+                        (disc) => disc.id === selecteId
+                      );
+
+                      if (selectedDiscount) {
+                        setProductDetails((prev) => ({
+                          ...prev,
+                          discount: selectedDiscount,
+                          discount_id: selectedDiscount.id,
+                        }));
+                      }
+                    }}
                   >
+                    <option value="">Select discount</option>
                     {discount.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.discount}
@@ -490,23 +588,65 @@ const ProductsSection = () => {
                     <p style={{ color: "red" }}>{errors.name_de}</p>
                   )} */}
                 </div>
+
+                <div className="">
+                  <label
+                    className="block mb-1 text-sm font-medium"
+                    htmlFor="image"
+                  >
+                    Upload Image
+                  </label>
+                  <input
+                    className="w-full p-2 border border-gray-300 rounded"
+                    onChange={(e) => setBinaryFile(e.target.files[0])}
+                    name="image"
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                  />
+                </div>
                 <button
                   onClick={(e) => saveProduct(e)}
                   className="w-full h-[40px] bg-green-500 text-white font-semibold rounded-md cursor-pointer"
                 >
-                  {isEditModal ? "Update product" : "Add product"}
+                  {isEditModal
+                    ? "Update product"
+                    : isLoading
+                    ? "Loading..."
+                    : "Add product"}
                 </button>
               </form>
             </div>
           </div>
         )}
+
+        {isOpen && (
+          <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
+            <div className="relative">
+              <img
+                src={selectedImage || "/placeholder.svg"}
+                alt="full-image"
+                className="max-w-[90vw] max-h-[90vh] rounded"
+              />
+              <button
+                onClick={() => setIsOpen(false)}
+                className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-80"
+              >
+                ❌
+              </button>
+            </div>
+          </div>
+        )}
+        {isDeletOpen && (
+          <DeleteModal
+            deleteItem={() => deleteItem(selectedProduct.id)}
+            onCancel={() => setIsDeleteOpen(false)}
+            label="product"
+          />
+        )}
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
-            <div className="flex-col gap-4 w-full flex items-center justify-center">
-              <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
-                <div className="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" />
-              </div>
-            </div>
+            <Loading />
           ) : data.length > 0 ? (
             <table className="min-w-full border border-gray-200">
               <thead className="bg-gray-100">
@@ -526,59 +666,6 @@ const ProductsSection = () => {
               </thead>
               {data.map((item, index) => (
                 <tbody key={item.id}>
-                  {isOpen && (
-                    <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
-                      <div className="relative">
-                        <img
-                          src={selectedImage}
-                          alt="full-image"
-                          className="max-w-[90vw] max-h-[90vh] rounded"
-                        />
-                        <button
-                          onClick={() => setIsOpen(false)}
-                          className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-80"
-                        >
-                          ❌
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  {isDeletOpen && (
-                    <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
-                      <div className="relative bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-8">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-xl font-bold mb-4">
-                            Are you sure you want to delete this product?
-                          </h3>
-                          <button
-                            onClick={() => setIsDeleteOpen(false)}
-                            className="text-white bg-black rounded-[50%] h-[35px] w-[35px] flex items-center justify-center cursor-pointer"
-                          >
-                            X
-                          </button>
-                        </div>
-                        <div className="flex justify-between">
-                          <button
-                            onClick={() => {
-                              // deleteItem(item.id);
-                              console.log(item.id);
-
-                              setIsDeleteOpen(false);
-                            }}
-                            className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                          >
-                            Yes, delete
-                          </button>
-                          <button
-                            onClick={() => setIsDeleteOpen(false)}
-                            className="px-4 cursor-pointer py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                   <tr className="bg-white text-center hover:bg-gray-100">
                     <td className="border border-gray-300 p-2">{index + 1}</td>
                     <td className="border border-gray-300 p-2 cursor-pointer w-[150px] h-[100px]">
@@ -625,13 +712,16 @@ const ProductsSection = () => {
                       )}
                     </td>
                     <td className="border border-gray-300 p-2">
-                      <button className="px-4 py-2 mr-2 cursor-pointer bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="px-4 py-2 mr-2 cursor-pointer bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                      >
                         Edit
                       </button>
                       <button
                         onClick={() => {
-                          // setIsDeleteOpen(true);
-                          deleteItem(item.id);
+                          setIsDeleteOpen(true);
+                          setSelectedProduct(item);
                         }}
                         className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                       >
@@ -644,7 +734,11 @@ const ProductsSection = () => {
             </table>
           ) : (
             <>
-              <img src={NoData} alt="No Data" className="w-24 h-24 mb-4" />
+              <img
+                src={NoData || "/placeholder.svg"}
+                alt="No Data"
+                className="w-24 h-24 mb-4"
+              />
               <p className="text-gray-500">No Data Available</p>
             </>
           )}
