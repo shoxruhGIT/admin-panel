@@ -1,7 +1,9 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
+import axiosInstance from "../services/axiosIntance";
+import axios from "axios";
+import DeleteModal from "../ui/DeleteModal";
 
 const SizesSection = () => {
   const [sizes, setSizes] = useState([]);
@@ -14,13 +16,16 @@ const SizesSection = () => {
   const [isEditId, setIsEditId] = useState(null);
   const [isEditModal, setIsEditModal] = useState(false);
 
+  const [isDeleteOpenModal, setIsDeleteOpenModal] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
+
   const token = localStorage.getItem("accessToken");
 
   const getSizes = async () => {
     try {
       setIsLoading(true);
       const { data } = await axios.get("https://back.ifly.com.uz/api/sizes");
-      console.log(data.data);
+
       setSizes(data.data);
     } catch (error) {
       console.log(error);
@@ -39,35 +44,28 @@ const SizesSection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/sizes/${id}`, {
+      await axiosInstance.delete(`/sizes/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("Size deleted successfully!");
       getSizes();
+      setIsDeleteOpenModal(false);
     } catch (error) {
       console.error(error);
 
       if (error.response) {
         if (error.response.status === 403) {
-          toast.error(
-            "Sizda bu amalni bajarishga ruxsat yo'q (403 Forbidden)."
-          );
-        } else if (error.response.status === 401) {
-          toast.error(
-            "Token noto'g'ri yoki muddati tugagan (401 Unauthorized)."
-          );
+          toast.error("You should update token");
         } else if (error.response.status === 500) {
-          toast.error(
-            "Serverda xatolik yuz berdi (500 Internal Server Error)."
-          );
+          toast.error("Discount already exist!");
         } else {
-          toast.error(`Xatolik: ${error.response.status}`);
+          toast.error(`Error: ${error.response.status}`);
         }
       } else {
-        toast.error("Tarmoq xatoligi yoki server javob bermadi.");
+        toast.error("Error");
       }
     }
   };
@@ -85,24 +83,20 @@ const SizesSection = () => {
         setErrors({ ...newError });
         setIsOpenModal(true);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/sizes/${isEditId}`,
-          sizeDetials,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        await axiosInstance.patch(`/sizes/${isEditId}`, sizeDetials, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast.success("Size updated successfully!");
         setIsOpenModal(false);
         resetForm();
         getSizes();
       } else {
-        await axios.post("https://back.ifly.com.uz/api/sizes", sizeDetials, {
+        await axiosInstance.post("/sizes", sizeDetials, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("Size added successfully!");
 
         setIsOpenModal(false);
         resetForm();
@@ -177,7 +171,7 @@ const SizesSection = () => {
             <div className="w-full max-w-[800px] min-h-[200px] bg-white p-8 rounded-lg overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold mb-4">
-                  {isEditModal ? "Edit category" : "Add category"}
+                  {isEditModal ? "Edit size" : "Add size"}
                 </h1>
                 <button
                   onClick={() => {
@@ -219,6 +213,13 @@ const SizesSection = () => {
             </div>
           </div>
         )}
+
+        {isDeleteOpenModal && (
+          <DeleteModal
+            deleteItem={() => deleteSize(selectedSize.id)}
+            onCancel={() => setIsDeleteOpenModal(false)}
+          />
+        )}
         <div className="flex flex-col items-center justify-center">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">
@@ -249,7 +250,10 @@ const SizesSection = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteSize(item.id)}
+                        onClick={() => {
+                          setSelectedSize(item);
+                          setIsDeleteOpenModal(true);
+                        }}
                         className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                       >
                         Delete

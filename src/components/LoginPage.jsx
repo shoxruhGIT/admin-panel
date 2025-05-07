@@ -1,7 +1,7 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import axiosInstance from "../services/axiosIntance";
 
 const LoginPage = () => {
   const [login, setLogin] = useState({
@@ -51,9 +51,13 @@ const LoginPage = () => {
         setErrors({ ...newError });
         setIsLoading(false);
       } else {
-        const { data } = await axiosInstance.post("/login", login, {
-          withCredentials: true,
-        });
+        const { data } = await axios.post(
+          "https://back.ifly.com.uz/api/auth/login",
+          login,
+          {
+            withCredentials: true,
+          }
+        );
 
         toast.success(`${data.data.message}`);
 

@@ -8,6 +8,7 @@ import InputField from "../ui/Input";
 import TextareaField from "../ui/Textarea";
 import Loading from "../ui/Loading";
 import DeleteModal from "../ui/DeleteModal";
+import axiosInstance from "../services/axiosIntance";
 
 const ProductsSection = () => {
   const [data, setData] = useState([]);
@@ -78,7 +79,7 @@ const ProductsSection = () => {
 
   const deleteItem = async (id) => {
     try {
-      await axios.delete(`https://back.ifly.com.uz/api/product/${id}`, {
+      await axiosInstance.delete(`/product/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -217,22 +218,18 @@ const ProductsSection = () => {
       formData.append("files", binaryFile);
 
       if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/product/${productId}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.patch(`/product/${productId}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         toast.success("Product updated successfully!");
         setIsOpenModal(false);
         getProduct();
         // resetForm();
       } else {
-        await axios.post("https://back.ifly.com.uz/api/product", formData, {
+        await axiosInstance.post("/product", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",

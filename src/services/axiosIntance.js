@@ -1,61 +1,106 @@
-// src/axiosInstance.js
+// axiosInstance.js
 import axios from "axios";
 
-// Axios instance yaratish
 const axiosInstance = axios.create({
-  baseURL: "https://back.ifly.com.uz/api/auth",
-  withCredentials: true,
+  baseURL: "https://back.ifly.com.uz/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem("accessToken"); // LocalStorage’dan access token olish
-    if (accessToken) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`; // Access tokenni so‘rovga qo‘shish
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Token qo‘shish
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
+
+// Token refresh qilish logikasi
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
 
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      (error.response?.status === 403 || error.response?.status === 401) &&
+      !originalRequest._retry
+    ) {
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = "Bearer " + token;
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
 
       try {
-        const newAccessToken = await refreshToken();
-        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-        return axiosInstance(originalRequest); // Yangi access token bilan so‘rovni qayta yuborish
-      } catch (refreshError) {
-        console.error("Refresh token yangilashda xatolik:", refreshError);
-        return Promise.reject(refreshError);
+        const response = await axios.post(
+          "https://back.ifly.com.uz/api/auth/refresh",
+          { refresh_token: refreshToken },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const newAccessToken = response.data.access_token;
+        const newRefreshToken = response.data.refresh_token;
+
+        localStorage.setItem("accessToken", newAccessToken);
+        localStorage.setItem("refreshToken", newRefreshToken);
+
+        axiosInstance.defaults.headers.common["Authorization"] =
+          "Bearer " + newAccessToken;
+        processQueue(null, newAccessToken);
+        originalRequest.headers.Authorization = "Bearer " + newAccessToken;
+
+        return axiosInstance(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        localStorage.clear();
+        window.location.href = "/login";
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 
     return Promise.reject(error);
   }
 );
-
-const refreshToken = async () => {
-  try {
-    const response = await axiosInstance.post(
-      "/refresh-token",
-      {},
-      { withCredentials: true }
-    );
-    const newAccessToken = response.data.accessToken;
-    localStorage.setItem("accessToken", newAccessToken); // Yangi access tokenni saqlash
-    return newAccessToken;
-  } catch (error) {
-    console.error("Refresh token yangilashda xatolik:", error);
-    throw error;
-  }
-};
 
 export default axiosInstance;

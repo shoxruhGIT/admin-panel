@@ -370,6 +370,24 @@ const TeamSection = () => {
             </div>
           </div>
         )}
+        {isOpen && (
+          <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
+            <div className="relative">
+              <img
+                src={selectedImage}
+                alt="full-image"
+                className="max-w-[90vw] max-h-[90vh] rounded"
+              />
+              <button
+                onClick={() => setIsOpen(false)}
+                className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-80"
+              >
+                ❌
+              </button>
+            </div>
+          </div>
+        )}
+        
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">
@@ -390,23 +408,6 @@ const TeamSection = () => {
               </thead>
               {teams.map((item, index) => (
                 <tbody key={item.id}>
-                  {isOpen && (
-                    <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
-                      <div className="relative">
-                        <img
-                          src={selectedImage}
-                          alt="full-image"
-                          className="max-w-[90vw] max-h-[90vh] rounded"
-                        />
-                        <button
-                          onClick={() => setIsOpen(false)}
-                          className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-80"
-                        >
-                          ❌
-                        </button>
-                      </div>
-                    </div>
-                  )}
                   <tr className="bg-white text-center hover:bg-gray-100">
                     <td className="border border-gray-300 p-2">{index + 1}</td>
                     <td className="border border-gray-300 p-2">

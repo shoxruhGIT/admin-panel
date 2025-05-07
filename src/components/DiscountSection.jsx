@@ -4,6 +4,7 @@ import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
 import DeleteModal from "../ui/DeleteModal";
 import Loading from "../ui/Loading";
+import axiosInstance from "../services/axiosIntance";
 
 const DiscountSection = () => {
   const [discount, setDiscount] = useState([]);
@@ -30,7 +31,7 @@ const DiscountSection = () => {
     try {
       setIsLoading(true);
       const { data } = await axios.get("https://back.ifly.com.uz/api/discount");
-      console.log(data.data);
+
       setDiscount(data.data);
     } catch (error) {
       console.log(error);
@@ -49,13 +50,13 @@ const DiscountSection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/discount/${id}`, {
+      await axiosInstance.delete(`/discount/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("Discount deleted successfully!");
       getDiscount();
       setIsDeleteOpenModal(false);
     } catch (error) {
@@ -63,22 +64,14 @@ const DiscountSection = () => {
 
       if (error.response) {
         if (error.response.status === 403) {
-          toast.error(
-            "Sizda bu amalni bajarishga ruxsat yo'q (403 Forbidden)."
-          );
-        } else if (error.response.status === 401) {
-          toast.error(
-            "Token noto'g'ri yoki muddati tugagan (401 Unauthorized)."
-          );
+          toast.error("You should update token");
         } else if (error.response.status === 500) {
-          toast.error(
-            "Serverda xatolik yuz berdi (500 Internal Server Error)."
-          );
+          toast.error("Discount already exist!");
         } else {
-          toast.error(`Xatolik: ${error.response.status}`);
+          toast.error(`Error: ${error.response.status}`);
         }
       } else {
-        toast.error("Tarmoq xatoligi yoki server javob bermadi.");
+        toast.error("Error");
       }
     }
   };
@@ -103,8 +96,8 @@ const DiscountSection = () => {
         setIsOpenModal(true);
         setIsLoading(false);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/discount/${isEditId}`,
+        await axiosInstance.patch(
+          `/discount/${isEditId}`,
           {
             ...discountDetails,
             discount: parseFloat(discountDetails.discount),
@@ -115,13 +108,13 @@ const DiscountSection = () => {
             },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        toast.success("Discount updated successfully!");
         setIsOpenModal(false); // modalni yopish
         resetForm(); // formani tozalash
         getDiscount();
       } else {
-        await axios.post(
-          "https://back.ifly.com.uz/api/discount",
+        await axiosInstance.post(
+          "/discount",
           {
             ...discountDetails,
             discount: parseFloat(discountDetails.discount),
@@ -130,7 +123,7 @@ const DiscountSection = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("Discount added successfully!");
 
         setIsOpenModal(false);
         resetForm();
@@ -138,7 +131,7 @@ const DiscountSection = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Xatolik yuz berdi");
+      toast.error("Error");
     }
   };
 
@@ -201,9 +194,9 @@ const DiscountSection = () => {
           <h2 className="text-lg font-bold">Discounts</h2>
           <button
             onClick={openAddModal}
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded cursor-pointer"
           >
-            Add Category
+            Add Discount
           </button>
         </div>
         {isOpenModal && (
@@ -211,7 +204,7 @@ const DiscountSection = () => {
             <div className="w-full max-w-[800px] min-h-[400px] bg-white p-8 rounded-lg">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold mb-4">
-                  {isEditModal ? "Edit category" : "Add category"}
+                  {isEditModal ? "Edit discount" : "Add discount"}
                 </h1>
                 <button
                   onClick={() => {
@@ -317,12 +310,14 @@ const DiscountSection = () => {
             </div>
           </div>
         )}
+
         {isDeleteOpenModal && (
           <DeleteModal
             deleteItem={() => deleteDiscount(selectedDiscount.id)}
             onCancel={() => setIsDeleteOpenModal(false)}
           />
         )}
+
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">

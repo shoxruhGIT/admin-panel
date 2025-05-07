@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
+import DeleteModal from "../ui/DeleteModal";
 
 const NewsSection = () => {
   const [news, setNews] = useState([]);
@@ -12,6 +13,10 @@ const NewsSection = () => {
   const [editItemId, setEditItemId] = useState(null);
   const token = localStorage.getItem("accessToken");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+  const [selectedNews, setSelectedNews] = useState(null);
 
   const [newsDetails, setNewsDetails] = useState({
     title_en: "",
@@ -55,6 +60,7 @@ const NewsSection = () => {
 
       toast.success("News deleted successfully!");
       getNews();
+      setIsOpenDeleteModal(false);
     } catch (error) {
       console.error(error);
 
@@ -133,7 +139,6 @@ const NewsSection = () => {
     formData.append("description_de", newsDetails.description_de);
 
     console.log(formData);
-    
 
     try {
       if (
@@ -421,6 +426,32 @@ const NewsSection = () => {
             </div>
           </div>
         )}
+        {isImageModalOpen && (
+          <div className="fixed inset-0 bg-gray-900/50 bg-opacity-70 flex items-center justify-center z-50">
+            <div className="relative">
+              <img
+                src={selectedImage}
+                alt="full-image"
+                className="max-w-[90vw] max-h-[90vh] rounded"
+              />
+              <button
+                onClick={() => setIsImageModalOpen(false)}
+                className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-80 cursor-pointer"
+              >
+                ❌
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isOpenDeleteModal && (
+          <DeleteModal
+            deleteItem={() => deleteNews(selectedNews.id)}
+            onCancel={() => setIsOpenDeleteModal(false)}
+            label="news"
+          />
+        )}
+
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">
@@ -445,11 +476,17 @@ const NewsSection = () => {
                 <tbody key={item.id}>
                   <tr className="bg-white text-center hover:bg-gray-100">
                     <td className="border border-gray-300 p-2">{index + 1}</td>
-                    <td className="border border-gray-300 p-2">
+                    <td className="border border-gray-300 p-2 cursor-pointer">
                       <img
+                        onClick={() => {
+                          setIsImageModalOpen(true);
+                          setSelectedImage(
+                            `https://back.ifly.com.uz/${item.image}`
+                          );
+                        }}
                         src={`https://back.ifly.com.uz/${item.image}`}
                         alt={item.title_en}
-                        className="w-16 h-16 object-cover mx-auto rounded"
+                        className="w-16 h-16 object-cover mx-auto rounded "
                       />
                     </td>
                     <td className="border border-gray-300 p-2">
@@ -466,7 +503,10 @@ const NewsSection = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteNews(item.id)}
+                        onClick={() => {
+                          setSelectedNews(item);
+                          setIsOpenDeleteModal(true);
+                        }}
                         className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                       >
                         Delete
