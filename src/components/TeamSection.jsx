@@ -56,7 +56,7 @@ const TeamSection = () => {
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("Team member deleted successfully!");
       getTeams();
     } catch (error) {
       console.error(error);
@@ -157,7 +157,7 @@ const TeamSection = () => {
             },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        toast.success("Team member updated successfully!");
         setIsOpenModal(false);
         resetForm();
         getTeams();
@@ -169,7 +169,7 @@ const TeamSection = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("Team member added succesfully!");
 
         setIsOpenModal(false);
         resetForm();
@@ -177,7 +177,7 @@ const TeamSection = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Xatolik yuz berdi");
+      toast.error("Error");
     }
   };
 
@@ -387,7 +387,7 @@ const TeamSection = () => {
             </div>
           </div>
         )}
-        
+
         <div className="flex flex-col items-center justify-center min-h-28">
           {isLoading ? (
             <div className="flex-col gap-4 w-full flex items-center justify-center">

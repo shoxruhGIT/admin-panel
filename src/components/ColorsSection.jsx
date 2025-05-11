@@ -132,7 +132,7 @@ const ColorsSection = () => {
             },
           }
         );
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        toast.success("Color updated successfully!");
         setIsOpenModal(false);
         resetForm();
         getColors();
@@ -140,7 +140,7 @@ const ColorsSection = () => {
         await axiosInstance.post("/colors", colorDetails, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("Color added successfully!");
 
         setIsOpenModal(false);
         resetForm();

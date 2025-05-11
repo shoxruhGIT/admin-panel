@@ -27,7 +27,9 @@ const ContactSection = () => {
   const getContact = async () => {
     try {
       setIsLoading(true);
-      const category = await axios.get("https://testaoron.limsa.uz/api/contact");
+      const category = await axios.get(
+        "https://testaoron.limsa.uz/api/contact"
+      );
       setContacts(category.data.data);
     } catch (error) {
       console.log(error);
@@ -54,7 +56,7 @@ const ContactSection = () => {
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("Contact deleted successfully!");
       getContact();
     } catch (error) {
       console.error(error);
@@ -139,7 +141,7 @@ const ContactSection = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        toast.success("Contact updated successfully!");
         setIsOpenModal(false);
         resetForm();
         getContact();
@@ -147,7 +149,7 @@ const ContactSection = () => {
         await axiosInstance.post("/contact", contactDetails, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("Contact added successfully!");
 
         setIsOpenModal(false);
         resetForm();
@@ -155,7 +157,7 @@ const ContactSection = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Xatolik yuz berdi");
+      toast.error("Error");
     }
   };
 

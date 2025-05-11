@@ -53,7 +53,7 @@ const ColorsSection = () => {
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("FAQ deleted successfully!");
       getFaqs();
     } catch (error) {
       console.error(error);
@@ -143,7 +143,7 @@ const ColorsSection = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        toast.success("Kategoriya muvaffaqiyatli yangilandi!");
+        toast.success("FAQ updated successfully!");
         setIsOpenModal(false);
         resetForm();
         getFaqs();
@@ -151,7 +151,7 @@ const ColorsSection = () => {
         await axiosInstance.post("/faq", faqDetails, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
+        toast.success("FAQ updated successfully!");
 
         setIsOpenModal(false);
         resetForm();
@@ -159,7 +159,7 @@ const ColorsSection = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Xatolik yuz berdi");
+      toast.error("Error");
     }
   };
 
