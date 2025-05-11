@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-phone-input-2/lib/style.css";
 import PhoneInput from "react-phone-input-2";
+import axiosInstance from "../services/axiosIntance";
 
 const ContactSection = () => {
   const [contacts, setContacts] = useState([]);
@@ -26,7 +27,7 @@ const ContactSection = () => {
   const getContact = async () => {
     try {
       setIsLoading(true);
-      const category = await axios.get("https://back.ifly.com.uz/api/contact");
+      const category = await axios.get("https://testaoron.limsa.uz/api/contact");
       setContacts(category.data.data);
     } catch (error) {
       console.log(error);
@@ -47,7 +48,7 @@ const ContactSection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/contact/${id}`, {
+      await axiosInstance.delete(`/contact/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -133,27 +134,19 @@ const ContactSection = () => {
         setErrors({ ...newError });
         setIsOpenModal(true);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/contact/${editItemId}`,
-          contactDetails,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.patch(`/contact/${editItemId}`, contactDetails, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         toast.success("Kategoriya muvaffaqiyatli yangilandi!");
         setIsOpenModal(false);
         resetForm();
         getContact();
       } else {
-        await axios.post(
-          "https://back.ifly.com.uz/api/contact",
-          contactDetails,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        await axiosInstance.post("/contact", contactDetails, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
 
         setIsOpenModal(false);

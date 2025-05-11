@@ -48,7 +48,9 @@ const ProductsSection = () => {
   const getProduct = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("https://back.ifly.com.uz/api/product");
+      const response = await axios.get(
+        "https://testaoron.limsa.uz/api/product"
+      );
       setData(response.data.data.products);
     } catch (error) {
       console.log(error);
@@ -56,13 +58,18 @@ const ProductsSection = () => {
       setIsLoading(false);
     }
   };
+  // console.log(data);
 
   const getData = async () => {
     try {
-      const category = await axios.get("https://back.ifly.com.uz/api/category");
-      const sizes = await axios.get("https://back.ifly.com.uz/api/sizes");
-      const colors = await axios.get("https://back.ifly.com.uz/api/colors");
-      const { data } = await axios.get("https://back.ifly.com.uz/api/discount");
+      const category = await axios.get(
+        "https://testaoron.limsa.uz/api/category"
+      );
+      const sizes = await axios.get("https://testaoron.limsa.uz/api/sizes");
+      const colors = await axios.get("https://testaoron.limsa.uz/api/colors");
+      const { data } = await axios.get(
+        "https://testaoron.limsa.uz/api/discount"
+      );
       setDiscount(data.data);
       setColors(colors.data.data);
       setSizes(sizes.data.data);
@@ -249,7 +256,7 @@ const ProductsSection = () => {
 
   return (
     <div className="ml-72 flex-1 p-6">
-      <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+      <div className="mt-6 bg-white rounded-lg shadow-md p-6 max-h-[50em] overflow-y-auto custom-scrollbar">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">Products</h2>
           <button
@@ -424,7 +431,7 @@ const ProductsSection = () => {
                     value={productDetails.category_id}
                     onChange={(e) => {
                       const selecteId = Number.parseInt(e.target.value);
-                      const selectedCategory = category.find(
+                      const selectedCategory = category?.find(
                         (cat) => cat.id === selecteId
                       );
 
@@ -439,8 +446,8 @@ const ProductsSection = () => {
                   >
                     <option value="">Select category</option>
                     {category?.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name_en}
+                      <option key={item?.id} value={item?.id}>
+                        {item?.name_en}
                       </option>
                     ))}
                   </select>
@@ -459,12 +466,12 @@ const ProductsSection = () => {
                   </label>
                   <div className="flex flex-wrap items-center gap-4">
                     {sizes.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
+                      <div key={item?.id} className="flex items-center gap-2">
                         <input
                           type="checkbox"
-                          id={`size-${item.id}`}
-                          value={item.id}
-                          checked={productDetails.sizes_id.some(
+                          id={`size-${item?.id}`}
+                          value={item?.id}
+                          checked={productDetails?.sizes_id?.some(
                             (size) =>
                               (typeof size === "object" &&
                                 size.id === item.id) ||
@@ -476,7 +483,7 @@ const ProductsSection = () => {
                             } else {
                               setProductDetails((prev) => ({
                                 ...prev,
-                                sizes_id: prev.sizes_id.filter(
+                                sizes_id: prev?.sizes_id?.filter(
                                   (size) =>
                                     (typeof size === "object" &&
                                       size.id !== item.id) ||
@@ -488,7 +495,7 @@ const ProductsSection = () => {
                           }}
                         />
                         <label htmlFor={`size-${item.id}`} className="text-sm">
-                          {item.size}
+                          {item?.size}
                         </label>
                       </div>
                     ))}
@@ -508,12 +515,12 @@ const ProductsSection = () => {
                   </label>
                   <div className="flex flex-wrap items-center gap-4">
                     {colors.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
+                      <div key={item?.id} className="flex items-center gap-2">
                         <input
                           type="checkbox"
-                          id={`color-${item.id}`}
-                          value={item.id}
-                          checked={productDetails.colors_id.some(
+                          id={`color-${item?.id}`}
+                          value={item?.id}
+                          checked={productDetails?.colors_id?.some(
                             (color) =>
                               (typeof color === "object" &&
                                 color.id === item.id) ||
@@ -526,7 +533,7 @@ const ProductsSection = () => {
                             } else {
                               setProductDetails((prev) => ({
                                 ...prev,
-                                colors_id: prev.colors_id.filter(
+                                colors_id: prev?.colors_id?.filter(
                                   (color) =>
                                     (typeof color === "object" &&
                                       color.id !== item.id) ||
@@ -538,7 +545,7 @@ const ProductsSection = () => {
                           }}
                         />
                         <label htmlFor={`color-${item.id}`} className="text-sm">
-                          {item.color_en}
+                          {item?.color_en}
                         </label>
                       </div>
                     ))}
@@ -558,7 +565,7 @@ const ProductsSection = () => {
                   </label>
                   <select
                     className="w-full p-2 border border-gray-300 rounded mb-2"
-                    value={productDetails.discount_id}
+                    value={productDetails?.discount_id}
                     onChange={(e) => {
                       const selecteId = Number.parseInt(e.target.value);
                       const selectedDiscount = discount.find(
@@ -577,7 +584,7 @@ const ProductsSection = () => {
                     <option value="">Select discount</option>
                     {discount.map((item) => (
                       <option key={item.id} value={item.id}>
-                        {item.discount}
+                        {item?.discount}
                       </option>
                     ))}
                   </select>
@@ -662,18 +669,18 @@ const ProductsSection = () => {
                 </tr>
               </thead>
               {data.map((item, index) => (
-                <tbody key={item.id}>
+                <tbody key={item?.id}>
                   <tr className="bg-white text-center hover:bg-gray-100">
                     <td className="border border-gray-300 p-2">{index + 1}</td>
                     <td className="border border-gray-300 p-2 cursor-pointer w-[150px] h-[100px]">
                       <img
-                        src={`https://back.ifly.com.uz/${item.images[0]}`}
+                        src={`https://testaoron.limsa.uz/${item?.images[0]}`}
                         alt="Product"
                         className="w-full h-full rounded-sm"
                         onClick={() => {
                           setIsOpen(true);
                           setSelectedImage(
-                            `https://back.ifly.com.uz/${item.images[0]}`
+                            `https://testaoron.limsa.uz/${item?.images[0]}`
                           );
                         }}
                       />
@@ -694,19 +701,14 @@ const ProductsSection = () => {
                       {item?.colors[0]?.color_en}
                     </td>
                     <td className="border border-gray-300 p-2">
-                      {item?.sizes && item.sizes.map((s) => s.size).join(", ")}
+                      {item?.sizes &&
+                        item?.sizes?.map((s) => s.size).join(", ")}
                     </td>
                     <td className="border border-gray-300 p-2">
                       {item?.discount?.discount}%
                     </td>
                     <td className="border border-gray-300 p-2">
-                      {Object.entries(item?.materials || {}).map(
-                        ([key, value]) => (
-                          <div key={key}>
-                            {key}: {value}%
-                          </div>
-                        )
-                      )}
+                      {console.log(item?.materials)}
                     </td>
                     <td className="border border-gray-300 p-2">
                       <button

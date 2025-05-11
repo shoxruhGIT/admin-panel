@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
 import DeleteModal from "../ui/DeleteModal";
+import axiosInstance from "../services/axiosIntance";
 
 const NewsSection = () => {
   const [news, setNews] = useState([]);
@@ -31,7 +32,7 @@ const NewsSection = () => {
   const getNews = async () => {
     try {
       setIsLoading(true);
-      const news = await axios.get("https://back.ifly.com.uz/api/news");
+      const news = await axios.get("https://testaoron.limsa.uz/api/news");
       setNews(news.data.data);
     } catch (error) {
       console.log(error);
@@ -52,7 +53,7 @@ const NewsSection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/news/${id}`, {
+      await axiosInstance.delete(`/news/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -161,22 +162,18 @@ const NewsSection = () => {
         setErrors({ ...newError });
         setIsOpenModal(true);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/news/${editItemId}`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.patch(`/news/${editItemId}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
         toast.success("News updated successfully!");
         setIsOpenModal(false);
         resetForm();
         getNews();
       } else {
-        await axios.post("https://back.ifly.com.uz/api/news", formData, {
+        await axiosInstance.post("/news", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
@@ -481,10 +478,10 @@ const NewsSection = () => {
                         onClick={() => {
                           setIsImageModalOpen(true);
                           setSelectedImage(
-                            `https://back.ifly.com.uz/${item.image}`
+                            `https://testaoron.limsa.uz/${item.image}`
                           );
                         }}
-                        src={`https://back.ifly.com.uz/${item.image}`}
+                        src={`https://testaoron.limsa.uz/${item.image}`}
                         alt={item.title_en}
                         className="w-16 h-16 object-cover mx-auto rounded "
                       />

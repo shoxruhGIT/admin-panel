@@ -28,7 +28,7 @@ const TeamSection = () => {
     try {
       setIsLoading(true);
       const members = await axios.get(
-        "https://back.ifly.com.uz/api/team-section"
+        "https://testaoron.limsa.uz/api/team-section"
       );
       setTeams(members.data.data);
     } catch (error) {
@@ -412,13 +412,13 @@ const TeamSection = () => {
                     <td className="border border-gray-300 p-2">{index + 1}</td>
                     <td className="border border-gray-300 p-2">
                       <img
-                        src={`https://back.ifly.com.uz/${item.image}`}
+                        src={`https://testaoron.limsa.uz/${item.image}`}
                         alt="Product"
                         className="mx-auto rounded-sm w-15 h-15"
                         onClick={() => {
                           setIsOpen(true);
                           setSelectedImage(
-                            `https://back.ifly.com.uz/${item.image}`
+                            `https://testaoron.limsa.uz/${item.image}`
                           );
                         }}
                       />

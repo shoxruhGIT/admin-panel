@@ -24,7 +24,7 @@ const SizesSection = () => {
   const getSizes = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get("https://back.ifly.com.uz/api/sizes");
+      const { data } = await axios.get("https://testaoron.limsa.uz/api/sizes");
 
       setSizes(data.data);
     } catch (error) {

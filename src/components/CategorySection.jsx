@@ -4,6 +4,7 @@ import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
 import Loading from "../ui/Loading";
 import DeleteModal from "../ui/DeleteModal";
+import axiosInstance from "../services/axiosIntance";
 
 const CategorySection = () => {
   const [category, setCategory] = useState([]);
@@ -27,7 +28,9 @@ const CategorySection = () => {
   const getCategory = async () => {
     try {
       setIsLoading(true);
-      const category = await axios.get("https://back.ifly.com.uz/api/category");
+      const category = await axios.get(
+        "https://testaoron.limsa.uz/api/category"
+      );
       setCategory(category.data.data);
     } catch (error) {
       console.log(error);
@@ -48,7 +51,7 @@ const CategorySection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/category/${id}`, {
+      await axiosInstance.delete(`/category/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -128,21 +131,17 @@ const CategorySection = () => {
         setErrors({ ...newError });
         setIsOpenModal(true);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/category/${editItemId}`,
-          categoryDetails,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.patch(`/category/${editItemId}`, categoryDetails, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         toast.success("Category updated successfully!");
         setIsOpenModal(false);
         getCategory();
       } else {
-        await axios.post(
-          "https://back.ifly.com.uz/api/category",
+        await axiosInstance.post(
+          "https://testaoron.limsa.uz/api/category",
           categoryDetails,
           {
             headers: { Authorization: `Bearer ${token}` },

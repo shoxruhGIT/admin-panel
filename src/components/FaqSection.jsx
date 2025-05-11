@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
+import axiosInstance from "../services/axiosIntance";
 
 const ColorsSection = () => {
   const [faqs, setFaqs] = useState([]);
@@ -25,7 +26,7 @@ const ColorsSection = () => {
   const getFaqs = async () => {
     try {
       setIsLoading(true);
-      const category = await axios.get("https://back.ifly.com.uz/api/faq");
+      const category = await axios.get("https://testaoron.limsa.uz/api/faq");
       setFaqs(category.data.data);
     } catch (error) {
       console.log(error);
@@ -46,7 +47,7 @@ const ColorsSection = () => {
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/faq/${id}`, {
+      await axiosInstance.delete(`/faq/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -137,21 +138,17 @@ const ColorsSection = () => {
         setErrors({ ...newError });
         setIsOpenModal(true);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/faq/${editItemId}`,
-          faqDetails,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.patch(`/faq/${editItemId}`, faqDetails, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         toast.success("Kategoriya muvaffaqiyatli yangilandi!");
         setIsOpenModal(false);
         resetForm();
         getFaqs();
       } else {
-        await axios.post("https://back.ifly.com.uz/api/faq", faqDetails, {
+        await axiosInstance.post("/faq", faqDetails, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");

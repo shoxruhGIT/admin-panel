@@ -52,7 +52,7 @@ const LoginPage = () => {
         setIsLoading(false);
       } else {
         const { data } = await axios.post(
-          "https://back.ifly.com.uz/api/auth/login",
+          "https://testaoron.limsa.uz/api/auth/login",
           login,
           {
             withCredentials: true,

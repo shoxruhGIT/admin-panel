@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://back.ifly.com.uz/api",
+  baseURL: "https://testaoron.limsa.uz/api/",
   headers: {
     "Content-Type": "application/json",
   },

@@ -30,7 +30,9 @@ const DiscountSection = () => {
   const getDiscount = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get("https://back.ifly.com.uz/api/discount");
+      const { data } = await axios.get(
+        "https://testaoron.limsa.uz/api/discount"
+      );
 
       setDiscount(data.data);
     } catch (error) {

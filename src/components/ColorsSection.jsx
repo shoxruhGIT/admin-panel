@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NoData from "../assets/no.png";
 import { toast } from "react-toastify";
+import axiosInstance from "../services/axiosIntance";
 
 const ColorsSection = () => {
   const [colors, setColors] = useState([]);
@@ -22,7 +23,7 @@ const ColorsSection = () => {
   const getColors = async () => {
     try {
       setIsLoading(true);
-      const category = await axios.get("https://back.ifly.com.uz/api/colors");
+      const category = await axios.get("https://testaoron.limsa.uz/api/colors");
       setColors(category.data.data);
     } catch (error) {
       console.log(error);
@@ -36,20 +37,20 @@ const ColorsSection = () => {
   // ======================================================== end get category function ========================================================
 
   // start delete category function ========================================================
-  const deleteCategory = async (id) => {
+  const deleteColor = async (id) => {
     try {
       if (!token) {
         toast.error("Authorization token topilmadi!");
         return;
       }
 
-      await axios.delete(`https://back.ifly.com.uz/api/colors/${id}`, {
+      await axiosInstance.delete(`/colors/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      toast.success("Mahsulot muvaffaqiyatli o'chirildi!");
+      toast.success("Color deleted successfully!");
       getColors();
     } catch (error) {
       console.error(error);
@@ -122,8 +123,8 @@ const ColorsSection = () => {
         setErrors({ ...newError });
         setIsOpenModal(true);
       } else if (isEditModal) {
-        await axios.patch(
-          `https://back.ifly.com.uz/api/colors/${editItemId}`,
+        await axiosInstance.patch(
+          `/colors/${editItemId}`,
           colorDetails,
           {
             headers: {
@@ -136,7 +137,7 @@ const ColorsSection = () => {
         resetForm();
         getColors();
       } else {
-        await axios.post("https://back.ifly.com.uz/api/colors", colorDetails, {
+        await axiosInstance.post("/colors", colorDetails, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Kategoriya muvaffaqiyatli qo‘shildi!");
@@ -320,7 +321,7 @@ const ColorsSection = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteCategory(item.id)}
+                        onClick={() => deleteColor(item.id)}
                         className="px-4 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                       >
                         Delete
